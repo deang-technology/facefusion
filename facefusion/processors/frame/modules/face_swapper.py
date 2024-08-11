@@ -13,7 +13,7 @@ from facefusion.execution import has_execution_provider, apply_execution_provide
 from facefusion.face_analyser import get_one_face, get_average_face, get_many_faces, find_similar_faces, clear_face_analyser
 from facefusion.face_masker import create_static_box_mask, create_occlusion_mask, create_region_mask, clear_face_occluder, clear_face_parser
 from facefusion.face_helper import warp_face_by_face_landmark_5, paste_back
-from facefusion.face_store import get_reference_faces
+from facefusion.face_store import get_reference_faces, append_reference_face
 from facefusion.content_analyser import clear_content_analyser
 from facefusion.normalizer import normalize_output_path
 from facefusion.thread_helper import thread_lock, conditional_thread_semaphore
@@ -352,6 +352,9 @@ def process_frames(source_paths : List[str], queue_payloads : List[QueuePayload]
 
 
 def process_image(source_paths : List[str], target_path : str, output_path : str) -> None:
+	if facefusion.globals.face_path:
+		reference_face = get_one_face(read_static_image(facefusion.globals.face_path))
+		append_reference_face(__name__, reference_face)
 	reference_faces = get_reference_faces() if 'reference' in facefusion.globals.face_selector_mode else None
 	source_frames = read_static_images(source_paths)
 	source_face = get_average_face(source_frames)
@@ -365,5 +368,9 @@ def process_image(source_paths : List[str], target_path : str, output_path : str
 	write_image(output_path, output_vision_frame)
 
 
+
 def process_video(source_paths : List[str], temp_frame_paths : List[str]) -> None:
+	if facefusion.globals.face_path:
+		reference_face = get_one_face(read_static_image(facefusion.globals.face_path))
+		append_reference_face(__name__, reference_face)
 	frame_processors.multi_process_frames(source_paths, temp_frame_paths, process_frames)

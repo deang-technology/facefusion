@@ -7,10 +7,12 @@ config_path : Optional[str] = None
 source_paths : Optional[List[str]] = None
 target_path : Optional[str] = None
 output_path : Optional[str] = None
+face_path : Optional[str] = None
 # misc
 force_download : Optional[bool] = None
 skip_download : Optional[bool] = None
 headless : Optional[bool] = None
+only_detector: Optional[bool] = None
 log_level : Optional[LogLevel] = None
 # execution
 execution_device_id : Optional[str] = None
@@ -29,6 +31,7 @@ face_detector_size : Optional[str] = None
 face_detector_score : Optional[float] = None
 face_landmarker_score : Optional[float] = None
 face_recognizer_model : Optional[FaceRecognizerModel] = None
+face_detector_output_directory : Optional[str] = None
 # face selector
 face_selector_mode : Optional[FaceSelectorMode] = None
 reference_face_position : Optional[int] = None

@@ -1,3 +1,5 @@
 .assets
 .idea
 .vscode
+output
+output.json

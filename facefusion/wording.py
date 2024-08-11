@@ -59,11 +59,13 @@ WORDING : Dict[str, Any] =\
 		'source': 'choose single or multiple source images or audios',
 		'target': 'choose single target image or video',
 		'output': 'specify the output file or directory',
+		'face': 'specify the face file',
 		# misc
 		'force_download': 'force automate downloads and exit',
 		'skip_download': 'omit automate downloads and remote lookups',
 		'headless': 'run the program without a user interface',
 		'log_level': 'adjust the message severity displayed in the terminal',
+		'only_detector': 'only detect face',
 		# execution
 		'execution_device_id': 'specify the device used for processing',
 		'execution_providers': 'accelerate the model inference using different providers (choices: {choices}, ...)',
@@ -80,6 +82,7 @@ WORDING : Dict[str, Any] =\
 		'face_detector_size': 'specify the size of the frame provided to the face detector',
 		'face_detector_score': 'filter the detected faces base on the confidence score',
 		'face_landmarker_score': 'filter the detected landmarks base on the confidence score',
+		'face_detector_output_directory': 'specify the output directory',
 		# face selector
 		'face_selector_mode': 'use reference based tracking or simple matching',
 		'reference_face_position': 'specify the position used to create the reference face',

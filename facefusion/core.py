@@ -1,4 +1,6 @@
+import json
 import os
+import uuid
 
 os.environ['OMP_NUM_THREADS'] = '1'
 
@@ -13,7 +15,7 @@ from argparse import ArgumentParser, HelpFormatter
 
 import facefusion.choices
 import facefusion.globals
-from facefusion.face_analyser import get_one_face, get_average_face
+from facefusion.face_analyser import get_one_face, get_average_face, get_many_faces, compare_faces
 from facefusion.face_store import get_reference_faces, append_reference_face
 from facefusion import face_analyser, face_masker, content_analyser, config, process_manager, metadata, logger, wording, voice_extractor
 from facefusion.content_analyser import analyse_image, analyse_video
@@ -26,7 +28,7 @@ from facefusion.statistics import conditional_log_statistics
 from facefusion.download import conditional_download
 from facefusion.filesystem import get_temp_frame_paths, get_temp_file_path, create_temp, move_temp, clear_temp, is_image, is_video, filter_audio_paths, resolve_relative_path, list_directory
 from facefusion.ffmpeg import extract_frames, merge_video, copy_image, finalize_image, restore_audio, replace_audio
-from facefusion.vision import read_image, read_static_images, detect_image_resolution, restrict_video_fps, create_image_resolutions, get_video_frame, detect_video_resolution, detect_video_fps, restrict_video_resolution, restrict_image_resolution, create_video_resolutions, pack_resolution, unpack_resolution
+from facefusion.vision import read_image, read_static_images, detect_image_resolution, restrict_video_fps, create_image_resolutions, get_video_frame, detect_video_resolution, detect_video_fps, restrict_video_resolution, restrict_image_resolution, create_video_resolutions, pack_resolution, unpack_resolution, count_video_frame_total, read_static_image, normalize_frame_color, write_image
 
 onnxruntime.set_default_logger_severity(3)
 warnings.filterwarnings('ignore', category = UserWarning, module = 'gradio')
@@ -42,12 +44,14 @@ def cli() -> None:
 	program.add_argument('-t', '--target', help = wording.get('help.target'), dest = 'target_path', default = config.get_str_value('general.target_path'))
 	program.add_argument('-o', '--output', help = wording.get('help.output'), dest = 'output_path', default = config.get_str_value('general.output_path'))
 	program.add_argument('-v', '--version', version = metadata.get('name') + ' ' + metadata.get('version'), action = 'version')
+	program.add_argument('-f', '--face', help=wording.get('help.face'), dest='face')
 	# misc
 	group_misc = program.add_argument_group('misc')
 	group_misc.add_argument('--force-download', help = wording.get('help.force_download'), action = 'store_true', default = config.get_bool_value('misc.force_download'))
 	group_misc.add_argument('--skip-download', help = wording.get('help.skip_download'), action = 'store_true', default = config.get_bool_value('misc.skip_download'))
 	group_misc.add_argument('--headless', help = wording.get('help.headless'), action = 'store_true', default = config.get_bool_value('misc.headless'))
 	group_misc.add_argument('--log-level', help = wording.get('help.log_level'), default = config.get_str_value('misc.log_level', 'info'), choices = logger.get_log_levels())
+	group_misc.add_argument('--only-detector', help=wording.get('help.only_detector'), action='store_true', default=config.get_bool_value('misc.only_detector'))
 	# execution
 	execution_providers = encode_execution_providers(onnxruntime.get_available_providers())
 	group_execution = program.add_argument_group('execution')
@@ -68,6 +72,7 @@ def cli() -> None:
 	group_face_analyser.add_argument('--face-detector-size', help = wording.get('help.face_detector_size'), default = config.get_str_value('face_analyser.face_detector_size', '640x640'))
 	group_face_analyser.add_argument('--face-detector-score', help = wording.get('help.face_detector_score'), type = float, default = config.get_float_value('face_analyser.face_detector_score', '0.5'), choices = facefusion.choices.face_detector_score_range, metavar = create_metavar(facefusion.choices.face_detector_score_range))
 	group_face_analyser.add_argument('--face-landmarker-score', help = wording.get('help.face_landmarker_score'), type = float, default = config.get_float_value('face_analyser.face_landmarker_score', '0.5'), choices = facefusion.choices.face_landmarker_score_range, metavar = create_metavar(facefusion.choices.face_landmarker_score_range))
+	group_face_analyser.add_argument('--face-detector-output-directory', help=wording.get('help.face_detector_output_directory'), type=str, default=config.get_str_value('face_analyser.face_detector_output_directory', ''))
 	# face selector
 	group_face_selector = program.add_argument_group('face selector')
 	group_face_selector.add_argument('--face-selector-mode', help = wording.get('help.face_selector_mode'), default = config.get_str_value('face_selector.face_selector_mode', 'reference'), choices = facefusion.choices.face_selector_modes)
@@ -136,11 +141,13 @@ def apply_args(program : ArgumentParser) -> None:
 	facefusion.globals.source_paths = args.source_paths
 	facefusion.globals.target_path = args.target_path
 	facefusion.globals.output_path = args.output_path
+	facefusion.globals.face_path = args.face_path
 	# misc
 	facefusion.globals.force_download = args.force_download
 	facefusion.globals.skip_download = args.skip_download
 	facefusion.globals.headless = args.headless
 	facefusion.globals.log_level = args.log_level
+	facefusion.globals.only_detector = args.only_detector
 	# execution
 	facefusion.globals.execution_device_id = args.execution_device_id
 	facefusion.globals.execution_providers = decode_execution_providers(args.execution_providers)
@@ -160,6 +167,7 @@ def apply_args(program : ArgumentParser) -> None:
 		facefusion.globals.face_detector_size = '640x640'
 	facefusion.globals.face_detector_score = args.face_detector_score
 	facefusion.globals.face_landmarker_score = args.face_landmarker_score
+	facefusion.globals.face_detector_output_directory = args.face_detector_output_directory
 	# face selector
 	facefusion.globals.face_selector_mode = args.face_selector_mode
 	facefusion.globals.reference_face_position = args.reference_face_position
@@ -223,6 +231,9 @@ def run(program : ArgumentParser) -> None:
 	for frame_processor_module in get_frame_processors_modules(facefusion.globals.frame_processors):
 		if not frame_processor_module.pre_check():
 			return
+	if facefusion.globals.only_detector:
+		detect_face()
+		return
 	if facefusion.globals.headless:
 		conditional_process()
 	else:
@@ -262,7 +273,6 @@ def conditional_process() -> None:
 		logger.enable()
 		if not frame_processor_module.pre_process('output'):
 			return
-	conditional_append_reference_faces()
 	if is_image(facefusion.globals.target_path):
 		process_image(start_time)
 	if is_video(facefusion.globals.target_path):
@@ -428,6 +438,56 @@ def process_video(start_time : float) -> None:
 	else:
 		logger.error(wording.get('processing_video_failed'), __name__.upper())
 	process_manager.end()
+
+
+def detect_face() -> None:
+	target_path = facefusion.globals.target_path
+	face_frames: [dict] = []
+	if is_image(target_path):
+		source_frame = read_static_image(target_path)
+		faces = get_many_faces(source_frame)
+		for face in faces:
+			face_frames.append({
+				"face": face,
+				"frame": source_frame
+			})
+	elif is_video(target_path):
+		n_frame = count_video_frame_total(target_path)
+		for i in range(0, min(facefusion.globals.reference_frame_number, n_frame)):
+			source_frame = get_video_frame(target_path, i)
+			faces = get_many_faces(source_frame)
+			for face in faces:
+				face_frames.append({
+					"face": face,
+					"frame": source_frame
+				})
+	diff_face_frames = []
+	for face_frame in face_frames:
+		existed = False
+		for diff_face_frame in diff_face_frames:
+			if compare_faces(face_frame["face"], diff_face_frame["face"], facefusion.globals.reference_face_distance):
+				existed = True
+				break
+		if not existed:
+			diff_face_frames.append(face_frame)
+	output = []
+	for diff_face_frame in diff_face_frames:
+		face = diff_face_frame["face"]
+		frame = diff_face_frame["frame"]
+		start_x, start_y, end_x, end_y = map(int, face.bounding_box)
+		padding_x = int((end_x - start_x) * 0.25)
+		padding_y = int((end_y - start_y) * 0.25)
+		start_x = max(0, start_x - padding_x)
+		start_y = max(0, start_y - padding_y)
+		end_x = max(0, end_x + padding_x)
+		end_y = max(0, end_y + padding_y)
+		crop_vision_frame = frame[start_y:end_y, start_x:end_x]
+		crop_vision_frame = normalize_frame_color(crop_vision_frame)
+		temp_image_path = f"{os.path.join(facefusion.globals.face_detector_output_directory, str(uuid.uuid4()))}.png"
+		write_image(temp_image_path, crop_vision_frame)
+		output.append(temp_image_path)
+	with open(facefusion.globals.output_path, "w") as f:
+		json.dump(output, f, ensure_ascii=False, indent=4)
 
 
 def is_process_stopping() -> bool:
