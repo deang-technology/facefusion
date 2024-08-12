@@ -13,7 +13,7 @@ from facefusion.vision import restrict_video_fps
 def run_ffmpeg(args : List[str]) -> bool:
 	commands = [ 'ffmpeg', '-hide_banner', '-loglevel', 'error' ]
 	commands.extend(args)
-	logger.debug(commands)
+	logger.debug(", ".join(commands), __name__.upper())
 	process = subprocess.Popen(commands, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 
 	while process_manager.is_processing():
