@@ -58,7 +58,7 @@ def face_detect(file_url: str):
 
 
 @app.get('/face-swap')
-def face_swap(target_url: str, face_url: str, source_url: str):
+def face_swap(target_url: str, face_url: str, source_url: str, type: str):
 	target_file = f"{directory}/{str(uuid.uuid4())}"
 	face_file = f"{directory}/{str(uuid.uuid4())}"
 	source_file = f"{directory}/{str(uuid.uuid4())}"
@@ -71,8 +71,11 @@ def face_swap(target_url: str, face_url: str, source_url: str):
 	resp3 = requests.get(source_url)
 	with open(source_file, "wb") as f3:
 		f3.write(resp3.content)
-
-	output_file = f"{directory}/{str(uuid.uuid4())}.png"
+	output_file = ""
+	if type == "video":
+		output_file = f"{directory}/{str(uuid.uuid4())}.mp4"
+	if type == "image":
+		output_file = f"{directory}/{str(uuid.uuid4())}.png"
 	commands = [sys.executable,
 				'run.py',
 				'--face-selector-mode',
