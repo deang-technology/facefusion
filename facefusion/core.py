@@ -44,7 +44,7 @@ def cli() -> None:
 	program.add_argument('-t', '--target', help = wording.get('help.target'), dest = 'target_path', default = config.get_str_value('general.target_path'))
 	program.add_argument('-o', '--output', help = wording.get('help.output'), dest = 'output_path', default = config.get_str_value('general.output_path'))
 	program.add_argument('-v', '--version', version = metadata.get('name') + ' ' + metadata.get('version'), action = 'version')
-	program.add_argument('-f', '--face', help=wording.get('help.face'), dest='face')
+	program.add_argument('-f', '--face', help=wording.get('help.face'), dest='face_path')
 	# misc
 	group_misc = program.add_argument_group('misc')
 	group_misc.add_argument('--force-download', help = wording.get('help.force_download'), action = 'store_true', default = config.get_bool_value('misc.force_download'))
