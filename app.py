@@ -46,7 +46,9 @@ def face_detect(file_url: str):
 				'--face-detector-output-directory',
 				directory,
 				'--execution-providers',
-				'cuda']
+				'cuda',
+				'--log-level',
+				'debug']
 	with open("nohup.out", "a") as log_file:
 		run = subprocess.run(commands, stdout=log_file, stderr=log_file, text=True)
 		if run.returncode != 0:
@@ -92,7 +94,9 @@ def face_swap(target_url: str, face_url: str, source_url: str, type: str):
 				face_file,
 				'--headless',
 				'--execution-providers',
-				'cuda']
+				'cuda',
+				'--log-level',
+				'debug']
 	with open("nohup.out", "a") as log_file:
 		run = subprocess.run(commands, stdout=log_file, stderr=log_file, text=True)
 		if run.returncode != 0 or not os.path.exists(output_file):
