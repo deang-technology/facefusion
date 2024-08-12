@@ -54,7 +54,7 @@ def face_detect(file_url: str):
 		return {"status": -1, "message": "Error"}
 	with open(output_path, "r") as f:
 		data = json.load(f)
-	data = list(map(lambda x: f"http://{ip}:{port}/file?file={x}", data))
+	data = list(map(lambda x: f"http://{ip}:{port}/file?file_url={x}", data))
 	return {"status": 1, "message": "Success", "data": data}
 
 
@@ -97,4 +97,4 @@ def face_swap(target_url: str, face_url: str, source_url: str):
 	if run.returncode != 0:
 		logging.error(run.stdout.decode())
 		return {"status": -1, "message": "Error"}
-	return {"status": 1, "message": "Success", "data": f"http://{ip}:{port}/file?file={output_file}"}
+	return {"status": 1, "message": "Success", "data": f"http://{ip}:{port}/file?file_url={output_file}"}
