@@ -48,8 +48,9 @@ def face_detect(file_url: str):
 				'cuda',
 				'--execution-providers',
 				'cpu']
-	run = subprocess.run(commands, stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
+	run = subprocess.run(commands, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	if run.returncode != 0:
+		logging.error(run.stdout.decode())
 		return {"status": -1, "message": "Error"}
 	with open(output_path, "r") as f:
 		data = json.load(f)
@@ -92,7 +93,8 @@ def face_swap(target_url: str, face_url: str, source_url: str):
 				'cuda',
 				'--execution-providers',
 				'cpu']
-	run = subprocess.run(commands, stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
+	run = subprocess.run(commands, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	if run.returncode != 0:
+		logging.error(run.stdout.decode())
 		return {"status": -1, "message": "Error"}
 	return {"status": 1, "message": "Success", "data": f"http://{ip}:{port}/file?file={output_file}"}
