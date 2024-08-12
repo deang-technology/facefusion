@@ -21,16 +21,16 @@ port = 8000
 
 
 @app.get("/file")
-def get_file(file: str):
-	media_type, _ = mimetypes.guess_type(file)
-	return fastapi.responses.FileResponse(file, media_type=media_type)
+def get_file(file_url: str):
+	media_type, _ = mimetypes.guess_type(file_url)
+	return fastapi.responses.FileResponse(file_url, media_type=media_type)
 
 
 @app.get('/face-detect')
-def face_detect(file: str):
+def face_detect(file_url: str):
 	file_path = f"{directory}/{str(uuid.uuid4())}"
 	output_path = f"{directory}/{str(uuid.uuid4())}"
-	resp = requests.get(file)
+	resp = requests.get(file_url)
 	with open(file_path, "wb") as f:
 		f.write(resp.content)
 	commands = [sys.executable,
