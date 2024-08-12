@@ -43,7 +43,11 @@ def face_detect(file: str):
 				'--reference-frame-number',
 				'10',
 				'--face-detector-output-directory',
-				directory]
+				directory,
+				'--execution-providers',
+				'cuda',
+				'--execution-providers',
+				'cpu']
 	run = subprocess.run(commands, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	if run.returncode != 0:
 		return {"status": -1, "message": "Error"}
@@ -71,6 +75,8 @@ def face_swap(target_url: str, face_url: str, source_url: str):
 
 	commands = [sys.executable,
 				'run.py',
+				'--face-selector-mode',
+				'reference',
 				'--frame-processors',
 				'face_swapper',
 				'-s',
@@ -81,7 +87,11 @@ def face_swap(target_url: str, face_url: str, source_url: str):
 				output_file,
 				'-f',
 				face_file,
-				'--headless']
+				'--headless',
+				'--execution-providers',
+				'cuda',
+				'--execution-providers',
+				'cpu']
 	run = subprocess.run(commands, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	if run.returncode != 0:
 		return {"status": -1, "message": "Error"}
