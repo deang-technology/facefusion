@@ -63,17 +63,17 @@ def face_swap(target_url: str, face_url: str, source_url: str):
 	target_file = f"{directory}/{str(uuid.uuid4())}"
 	face_file = f"{directory}/{str(uuid.uuid4())}"
 	source_file = f"{directory}/{str(uuid.uuid4())}"
-	output_file = f"{directory}/{str(uuid.uuid4())}"
-	resp = requests.get(target_url)
-	with open(target_file, "wb") as f:
-		f.write(resp.content)
-	resp = requests.get(face_url)
-	with open(face_file, "wb") as f:
-		f.write(resp.content)
-	resp = requests.get(source_url)
-	with open(source_file, "wb") as f:
-		f.write(resp.content)
+	resp1 = requests.get(target_url)
+	with open(target_file, "wb") as f1:
+		f1.write(resp1.content)
+	resp2 = requests.get(face_url)
+	with open(face_file, "wb") as f2:
+		f2.write(resp2.content)
+	resp3 = requests.get(source_url)
+	with open(source_file, "wb") as f3:
+		f3.write(resp3.content)
 
+	output_file = f"{directory}/{str(uuid.uuid4())}.png"
 	commands = [sys.executable,
 				'run.py',
 				'--face-selector-mode',
