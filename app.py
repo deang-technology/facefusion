@@ -28,12 +28,16 @@ def get_file(file_url: str):
 
 
 @app.get('/face-detect')
-def face_detect(file_url: str):
+def face_detect(file_url: str, type: str):
 	file_path = f"{directory}/{str(uuid.uuid4())}"
-	output_path = f"{directory}/{str(uuid.uuid4())}"
+	if type == "image":
+		file_path = f"{file_path}.png"
+	if type == "video":
+		file_path = f"{file_path}.mp4"
 	resp = requests.get(file_url)
 	with open(file_path, "wb") as f:
 		f.write(resp.content)
+	output_path = f"{directory}/{str(uuid.uuid4())}.json"
 	commands = [sys.executable,
 				'run.py',
 				'--only-detector',
@@ -62,8 +66,16 @@ def face_detect(file_url: str):
 @app.get('/face-swap')
 def face_swap(target_url: str, face_url: str, source_url: str, type: str):
 	target_file = f"{directory}/{str(uuid.uuid4())}"
-	face_file = f"{directory}/{str(uuid.uuid4())}"
-	source_file = f"{directory}/{str(uuid.uuid4())}"
+	output_file = f"{directory}/{str(uuid.uuid4())}"
+	if type == "video":
+		target_file = f"{target_file}.mp4"
+		output_file = f"{output_file}.mp4"
+	if type == "image":
+		target_file = f"{target_file}.png"
+		output_file = f"{output_file}.png"
+	face_file = f"{directory}/{str(uuid.uuid4())}.png"
+	source_file = f"{directory}/{str(uuid.uuid4())}.png"
+
 	resp1 = requests.get(target_url)
 	with open(target_file, "wb") as f1:
 		f1.write(resp1.content)
@@ -73,11 +85,6 @@ def face_swap(target_url: str, face_url: str, source_url: str, type: str):
 	resp3 = requests.get(source_url)
 	with open(source_file, "wb") as f3:
 		f3.write(resp3.content)
-	output_file = ""
-	if type == "video":
-		output_file = f"{directory}/{str(uuid.uuid4())}.mp4"
-	if type == "image":
-		output_file = f"{directory}/{str(uuid.uuid4())}.png"
 	commands = [sys.executable,
 				'run.py',
 				'--face-selector-mode',
