@@ -1,6 +1,7 @@
 import json
 import logging
 import mimetypes
+import os.path
 import subprocess
 import sys
 import uuid
@@ -48,14 +49,14 @@ def face_detect(file_url: str):
 				'cuda',
 				'--execution-providers',
 				'cpu']
-	run = subprocess.run(commands, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	if run.returncode != 0:
-		logging.error(run.stdout.decode())
-		return {"status": -1, "message": "Error"}
-	with open(output_path, "r") as f:
-		data = json.load(f)
-	data = list(map(lambda x: f"http://{ip}:{port}/file?file_url={x}", data))
-	return {"status": 1, "message": "Success", "data": data}
+	with open("nohup.out", "a") as log_file:
+		run = subprocess.run(commands, stdout=log_file, stderr=log_file, text=True)
+		if run.returncode != 0:
+			return {"status": -1, "message": "Error"}
+		with open(output_path, "r") as ret_file:
+			data = json.load(ret_file)
+		data = list(map(lambda x: f"http://{ip}:{port}/file?file_url={x}", data))
+		return {"status": 1, "message": "Success", "data": data}
 
 
 @app.get('/face-swap')
@@ -93,8 +94,8 @@ def face_swap(target_url: str, face_url: str, source_url: str):
 				'cuda',
 				'--execution-providers',
 				'cpu']
-	run = subprocess.run(commands, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	if run.returncode != 0:
-		logging.error(run.stdout.decode())
-		return {"status": -1, "message": "Error"}
-	return {"status": 1, "message": "Success", "data": f"http://{ip}:{port}/file?file_url={output_file}"}
+	with open("nohup.out", "a") as log_file:
+		run = subprocess.run(commands, stdout=log_file, stderr=log_file, text=True)
+		if run.returncode != 0 or not os.path.exists(output_file):
+			return {"status": -1, "message": "Error"}
+		return {"status": 1, "message": "Success", "data": f"http://{ip}:{port}/file?file_url={output_file}"}
