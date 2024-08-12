@@ -3,3 +3,4 @@
 .vscode
 output
 output.json
+__pycache__/
