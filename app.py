@@ -91,6 +91,7 @@ def face_swap(target_url: str, face_url: str, source_url: str, type: str):
 				'reference',
 				'--frame-processors',
 				'face_swapper',
+				'face_enhancer',
 				'--output-video-quality',
 				'90',
 				'--output-image-quality',
