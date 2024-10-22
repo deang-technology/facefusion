@@ -56,7 +56,6 @@ def extract_frames(target_path : str, temp_video_resolution : str, temp_video_fp
 	else:
 		commands.extend([ '-vf', 'fps=' + str(temp_video_fps) ])
 	commands.extend([ '-vsync', '0', temp_frames_pattern ])
-	commands.extend(['-y', '-c:v', 'libx265', '-preset', 'slow'])
 	return run_ffmpeg(commands)
 
 

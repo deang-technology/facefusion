@@ -429,7 +429,7 @@ def process_video(start_time : float) -> None:
 				move_temp(facefusion.globals.target_path, normed_output_path)
 	# clear temp
 	logger.debug(wording.get('clearing_temp'), __name__.upper())
-	# clear_temp(facefusion.globals.target_path)
+	clear_temp(facefusion.globals.target_path)
 	# validate video
 	if is_video(normed_output_path):
 		seconds = '{:.2f}'.format((time() - start_time))
