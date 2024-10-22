@@ -104,8 +104,8 @@ def face_swap(target_url: str, face_url: str, source_url: str, type: str):
 				'cuda',
 				'--log-level',
 				'debug',
-				'--output-video-fps',
-				'60']
+				'--output-video-preset',
+				'medium']
 	with open("nohup.out", "a") as log_file:
 		run = subprocess.run(commands, stdout=log_file, stderr=log_file, text=True)
 		if run.returncode != 0 or not os.path.exists(output_file):
