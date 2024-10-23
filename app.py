@@ -92,6 +92,11 @@ def face_swap(target_url: str, face_url: str, source_url: str, type: str):
 				'--frame-processors',
 				'face_swapper',
 				'face_enhancer',
+				'frame_enhancer',
+				'--frame-enhancer-blend',
+				'100',
+				'--face-enhancer-blend',
+				'100',
 				'-s',
 				source_file,
 				'-t',
@@ -104,9 +109,7 @@ def face_swap(target_url: str, face_url: str, source_url: str, type: str):
 				'--execution-providers',
 				'cuda',
 				'--log-level',
-				'debug',
-				'--face-swapper-pixel-boost',
-				'1024x1024'
+				'debug'
 				]
 	with open("nohup.out", "a") as log_file:
 		run = subprocess.run(commands, stdout=log_file, stderr=log_file, text=True)
