@@ -93,6 +93,8 @@ def face_swap(target_url: str, face_url: str, source_url: str, type: str):
 				'face_swapper',
 				'face_enhancer',
 				'frame_enhancer',
+				'--face-swapper-model',
+				'blendswap_256',
 				'--frame-enhancer-blend',
 				'100',
 				'--face-enhancer-blend',
